@@ -13,10 +13,12 @@ class SlotScreen extends StatefulWidget {
 class _SlotScreenState extends State<SlotScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _dateController = TextEditingController();
   TimeOfDay _startTime = TimeOfDay(hour: 8, minute: 0);
-  TimeOfDay _endTime = TimeOfDay(hour: 10, minute: 0);
-  final DateTime _selectedDate = DateTime.now();
+
+  // TimeOfDay _endTime = TimeOfDay(hour: 10, minute: 0);
+  DateTime _selectedDate = DateTime.now();
   String selectedTab = 'weekDay';
 
   TimeOfDay _calculateEndTime(TimeOfDay startTime) {
@@ -55,103 +57,152 @@ class _SlotScreenState extends State<SlotScreen>
             ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  width: 60,
-                  height: 3,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black45,
-                    borderRadius: BorderRadius.circular(2),
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 60,
+                    height: 3,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black45,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              isDate == true ? SizedBox(height: 20) : SizedBox(),
-              isDate == true
-                  ? Text(
-                    'Booking Date',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  )
-                  : SizedBox(),
-              isDate == true ? SizedBox(height: 6) : SizedBox(),
-              isDate == true
-                  ? GestureDetector(
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(Duration(days: 365)),
-                      );
-                      if (pickedDate != null && pickedDate != _selectedDate) {
-                        setState(() {
-                          _dateController.text = DateFormat(
-                            'dd/MM/yyyy',
-                          ).format(pickedDate);
-                          pickedDate.toLocal().toString().split(' ')[0];
-                          _startTime = TimeOfDay(hour: 8, minute: 0);
-                          _endTime = _calculateEndTime(_startTime);
-                        });
-                      }
-                    },
-                    child: AbsorbPointer(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey, width: 2),
-                          borderRadius: BorderRadius.circular(10),
+                // Check if date is required
+                isDate == true
+                    ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 20),
+                        Text(
+                          'Booking Date',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
                         ),
-                        child: TextField(
-                          readOnly: true,
-                          controller: _dateController,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(vertical: 12),
-                            border: InputBorder.none,
-                            hintText: "DD/MM/YYYY",
-                            suffixIcon: Icon(
-                              Icons.calendar_month,
-                              color: Colors.grey,
+                        SizedBox(height: 6),
+                        GestureDetector(
+                          onTap: () async {
+                            DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: _selectedDate,
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(Duration(days: 365)),
+                            );
+                            if (pickedDate != null &&
+                                pickedDate != _selectedDate) {
+                              setState(() {
+                                _dateController.text = DateFormat(
+                                  'dd/MM/yyyy',
+                                ).format(pickedDate);
+                                _selectedDate = pickedDate;
+                                _startTime = TimeOfDay(hour: 8, minute: 0);
+                              });
+                            }
+                          },
+                          child: AbsorbPointer(
+                            child: TextFormField(
+                              readOnly: true,
+                              controller: _dateController,
+                              validator: (value) {
+                                if ((value == null || value.isEmpty) &&
+                                    isDate == true) {
+                                  return "Booking Date is required";
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 14,
+                                  horizontal: 12,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey,
+                                    width: 2,
+                                  ),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey,
+                                    width: 2,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey,
+                                    width: 2,
+                                  ),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey,
+                                    width: 2,
+                                  ),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.red,
+                                    width: 2,
+                                  ),
+                                ),
+                                hintText: "DD/MM/YYYY",
+                                suffixIcon: Icon(
+                                  Icons.calendar_month,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  )
-                  : SizedBox(),
-              SizedBox(height: 20),
+                      ],
+                    )
+                    : SizedBox(),
+                SizedBox(height: 20),
 
-              TimeRange(
-                activeBorderColor: Colors.blueAccent,
-                fromTitle: Text(
-                  'Start Time',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-                toTitle: Text(
-                  'End Time',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-                titlePadding: 0,
-                textStyle: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black87,
-                ),
-                activeTextStyle: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                borderColor: Colors.black38,
-                backgroundColor: Colors.transparent,
-                activeBackgroundColor: Colors.blueAccent,
-                firstTime: _startTime,
-                lastTime: TimeOfDay(hour: 22, minute: 0),
-                timeStep: 30,
-                timeBlock: 90,
-                onRangeCompleted:
-                    (range) => setState(() {
+                TimeRange(
+                  activeBorderColor: Colors.blueAccent,
+                  fromTitle: Text(
+                    'Start Time',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  toTitle: Text(
+                    'End Time',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  titlePadding: 0,
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black87,
+                  ),
+                  activeTextStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  borderColor: Colors.black38,
+                  backgroundColor: Colors.transparent,
+                  activeBackgroundColor: Colors.blueAccent,
+                  firstTime:
+                      isDate == false
+                          ? TimeOfDay.fromDateTime(
+                            DateTime.now().add(Duration(hours: 1)),
+                          )
+                          : _startTime,
+                  lastTime: TimeOfDay(hour: 22, minute: 0),
+                  timeStep: 30,
+                  timeBlock: 30,
+                  onRangeCompleted: (range) {
+                    setState(() {
                       String startFormatted = DateFormat.Hm().format(
                         DateTime(
                           _selectedDate.year,
@@ -171,33 +222,45 @@ class _SlotScreenState extends State<SlotScreen>
                         ),
                       );
                       debugPrint("RANGE::   $startFormatted to $endFormatted");
-                    }),
-              ),
-              SizedBox(height: 30),
-              Center(
-                child: TextButton(
-                  style: ButtonStyle(
-                    padding: MaterialStateProperty.all(
-                      EdgeInsets.symmetric(horizontal: 50),
-                    ),
-                    backgroundColor: WidgetStatePropertyAll(Colors.blueAccent),
-                    side: WidgetStatePropertyAll(
-                      BorderSide(color: Colors.blueAccent, width: 1),
-                    ),
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    });
+                  },
+                ),
+                SizedBox(height: 30),
+
+                // Confirm Button
+                Center(
+                  child: TextButton(
+                    style: ButtonStyle(
+                      padding: WidgetStateProperty.all(
+                        EdgeInsets.symmetric(horizontal: 50),
+                      ),
+                      backgroundColor: WidgetStateProperty.all(
+                        Colors.blueAccent,
+                      ),
+                      side: WidgetStateProperty.all(
+                        BorderSide(color: Colors.blueAccent, width: 1),
+                      ),
+                      shape: WidgetStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
+                    onPressed: () {
+                      if (_formKey.currentState == null ||
+                          _formKey.currentState!.validate()) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: Text(
+                      'Confirm',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Confirm', style: TextStyle(color: Colors.white)),
                 ),
-              ),
-              SizedBox(height: 50),
-            ],
+                SizedBox(height: 50),
+              ],
+            ),
           ),
         );
       },
@@ -220,6 +283,7 @@ class _SlotScreenState extends State<SlotScreen>
             clipBehavior: Clip.antiAlias,
             isExtended: true,
             onPressed: () {
+              _dateController.clear();
               timeSlotBottomSheet(
                 context,
                 selectedTab == 'weekDay' ? false : true,
